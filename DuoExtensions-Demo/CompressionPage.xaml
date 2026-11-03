@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:duo="clr-namespace:DuoExtensions.Maui;assembly=DuoExtensions.Maui"
+             x:Class="DuoExtensionsDemo.CompressionPage" Title="Bar compression"
+             duo:ToolbarLayout.CompressionBehavior="Automatic">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
+            <Label Text="When space gets tight" Style="{StaticResource Heading}" />
+            <Label Text="Eight distinct actions and five tabs share the available bar space. Choose which group iOS should favor when a vertical bar gets crowded." />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Compression preference" Style="{StaticResource SectionTitle}" />
+                    <Picker x:Name="CompressionPicker" Title="Compression behavior"
+                            AutomationId="CompressionPicker" SelectedIndexChanged="OnCompressionChanged">
+                        <Picker.Items>
+                            <x:String>Automatic</x:String>
+                            <x:String>Prefer toolbar items</x:String>
+                            <x:String>Prefer tab bar</x:String>
+                        </Picker.Items>
+                    </Picker>
+                    <Label x:Name="DescriptionLabel" />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="These are preferences, not visibility guarantees. Compare in a vertical-bar layout with limited space; in a roomy or horizontal layout you may see no change."
+                   Style="{StaticResource Caption}" />
+            <Label x:Name="ActionFeedback" Text="Tap Share to try the action." Style="{StaticResource Caption}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

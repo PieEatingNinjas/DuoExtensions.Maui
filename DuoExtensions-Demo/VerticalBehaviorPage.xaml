@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DuoExtensionsDemo.VerticalBehaviorPage" Title="Vertical bars">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
+            <Label Text="Let bars go vertical" Style="{StaticResource Heading}" />
+            <Label Text="This preference belongs to the entire Shell, not to one action or page. Turn vertical bars off, then visit another tab to see that the choice stays active." />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                        <Label Text="Allow vertical bars" VerticalOptions="Center" Style="{StaticResource SectionTitle}" />
+                        <Switch x:Name="VerticalSwitch" Grid.Column="1" AutomationId="VerticalSwitch"
+                                Toggled="OnVerticalToggled" />
+                    </Grid>
+                    <Label x:Name="BehaviorLabel" Style="{StaticResource Value}" />
+                    <Label Text="Automatic lets iOS choose a layout; it does not force a vertical bar. Disabled opts the Shell out of vertical bars." />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="This is independent of an individual action's axis preference. Restore Automatic to compare compression and edge behavior in a vertical layout."
+                   Style="{StaticResource Caption}" />
+            <Label x:Name="ActionFeedback" Text="The toolbar has Search and Favorite actions for comparison."
+                   Style="{StaticResource Caption}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

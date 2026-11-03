@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="DuoExtensionsDemo.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:DuoExtensionsDemo"
+    FlyoutBehavior="Disabled"
+    Title="Duo Extensions"
+    Shell.TabBarForegroundColor="{AppThemeBinding Light=#2563EB, Dark=#93C5FD}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}">
+    <TabBar>
+        <ShellContent Title="Axis" Icon="axis.png" Route="axis"
+                      ContentTemplate="{DataTemplate local:AxisPage}" />
+        <ShellContent Title="Compression" Icon="compression.png" Route="compression"
+                      ContentTemplate="{DataTemplate local:CompressionPage}" />
+        <ShellContent Title="Vertical" Icon="vertical.png" Route="vertical"
+                      ContentTemplate="{DataTemplate local:VerticalBehaviorPage}" />
+        <ShellContent Title="Edge" Icon="edge.png" Route="edge"
+                      ContentTemplate="{DataTemplate local:VerticalEdgePage}" />
+        <ShellContent Title="Hinge" Icon="hinge.png" Route="hinge"
+                      ContentTemplate="{DataTemplate local:HingePage}" />
+    </TabBar>
+</Shell>

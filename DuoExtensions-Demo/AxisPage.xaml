@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:duo="clr-namespace:DuoExtensions.Maui;assembly=DuoExtensions.Maui"
+             x:Class="DuoExtensionsDemo.AxisPage" Title="Toolbar axis">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem x:Name="ShareAction" Text="Share" IconImageSource="share.png"
+                     AutomationId="AxisShareAction"
+                     duo:ToolbarItemAxisBehavior.AxisBehavior="Automatic"
+                     Clicked="OnShareClicked" />
+    </ContentPage.ToolbarItems>
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
+            <Label Text="One action, different axes" Style="{StaticResource Heading}" />
+            <Label Text="Change where the Share action is allowed to appear. Watch the real toolbar as you change the preference." />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Share action preference" Style="{StaticResource SectionTitle}" />
+                    <Picker x:Name="AxisPicker" Title="Axis behavior" AutomationId="AxisPicker"
+                            SelectedIndexChanged="OnAxisChanged">
+                        <Picker.Items>
+                            <x:String>Automatic</x:String>
+                            <x:String>Horizontal only</x:String>
+                            <x:String>Vertical preferred</x:String>
+                        </Picker.Items>
+                    </Picker>
+                    <Label x:Name="DescriptionLabel" />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="Horizontal only specifies an axis, not top or bottom. On the tested simulator, switching at runtime can place the action differently from setting it before the first layout."
+                   Style="{StaticResource Caption}" />
+            <Label Text="The system makes the final placement decision. Use a Duo configuration with vertical bars to compare all three options."
+                   Style="{StaticResource Caption}" />
+            <Label x:Name="ActionFeedback" Text="Tap Share to try the action." Style="{StaticResource Caption}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

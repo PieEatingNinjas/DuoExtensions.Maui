@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DuoExtensionsDemo.VerticalEdgePage" Title="Vertical edge">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
+            <Label Text="Where is the bar?" Style="{StaticResource Heading}" />
+            <Label Text="This page observes the system's actual vertical edge. Change the Duo posture or layout and watch the direction update." />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="16">
+                    <Image x:Name="DirectionArrow" Source="arrow.png" WidthRequest="100" HeightRequest="100"
+                           HorizontalOptions="Center" AutomationId="EdgeArrow" />
+                    <Label x:Name="EdgeLabel" HorizontalTextAlignment="Center"
+                           AutomationId="EdgeLabel" Style="{StaticResource Value}" />
+                    <Label x:Name="DirectionLabel" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="Leading and trailing are logical edges: in a right-to-left layout their physical directions are reversed. The arrow follows this page's flow direction."
+                   Style="{StaticResource Caption}" />
+            <Label Text="Unspecified means UIKit is not reporting a vertical edge for this page. The arrow is hidden rather than guessing a side."
+                   Style="{StaticResource Caption}" />
+            <Label x:Name="ActionFeedback" Text="Search and Favorite are real toolbar actions."
+                   Style="{StaticResource Caption}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
