@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DuoExtensionsDemo.EdgeToEdgeScrollingPage" 
+             Title="Edge-to-edge scrolling"
+             SafeAreaEdges="Container, None" 
+             BackgroundColor="White"
+             Shell.BackgroundColor="Transparent">
+    <!-- Wrapping a grid around the CollectionView (for overlays for example) doesn't break edge-to-edge scrolling -->
+    <!-- <Grid BackgroundColor="Transparent" SafeAreaEdges="Container, None"> -->
+       <CollectionView x:Name="EdgeToEdgeCollectionView" BackgroundColor="Transparent">
+              <CollectionView.ItemTemplate> 
+                     <DataTemplate x:DataType="x:String">
+                     <Grid HeightRequest="75" BackgroundColor="#2563EB" Margin="15">
+                     <Label Text="{Binding .}" TextColor="White" />
+                     </Grid>
+              </DataTemplate>
+              </CollectionView.ItemTemplate>
+       </CollectionView>
+    <!-- </Grid> -->
+</ContentPage>

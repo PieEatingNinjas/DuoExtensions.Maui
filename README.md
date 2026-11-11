@@ -2,7 +2,7 @@
 
 # DuoExtensions.Maui
 
-Adaptive toolbars in .NET MAUI Shell and window-aware hinge monitoring for iPhone Duo.
+Adaptive toolbars in .NET MAUI Shell, edge-to-edge CollectionView scrolling, and window-aware hinge monitoring for iPhone Duo.
 
 **DuoExtensions.Maui** makes selected UIKit APIs easier to use from MAUI through attached properties and a dependency-injected hinge service. Use XAML and C# to configure toolbar preferences, observe the vertical bar edge, and react to hinge status and angle without repeating the native plumbing in your app.
 
@@ -16,9 +16,10 @@ Adaptive toolbars in .NET MAUI Shell and window-aware hinge monitoring for iPhon
 | Vertical bars | `ToolbarLayout.VerticalBehavior` | Entire Shell |
 | Bar compression | `ToolbarLayout.CompressionBehavior` | Shell page |
 | Vertical bar edge | `ToolbarLayout.VerticalEdge` (read-only) | Shell page |
+| Edge-to-edge scrolling | `UseEdgeToEdgeCollectionView()` | App-wide iOS CollectionView handler |
 | Hinge status and angle | `IHingeService.ForWindow(Window)` | Any MAUI window; no Shell dependency |
 
-These settings are system preferences, not custom toolbar rendering. UIKit determines the final layout.
+The toolbar settings are system preferences, not custom toolbar rendering. UIKit determines the final layout.
 
 ## Requirements
 
@@ -52,6 +53,8 @@ builder
 This registers the iOS Shell renderer and the singleton `IHingeService`. You do not need to register or attach the hinge observer yourself.
 
 For hinge monitoring without Shell (or without replacing a custom Shell renderer), use `builder.UseHingeMonitoring()`. For only Shell toolbars, use `builder.UseDuoShellToolbars()`. `UseDuoExtensions()` combines both.
+
+Edge-to-edge CollectionView scrolling is a separate opt-in: add `.UseEdgeToEdgeCollectionView()` as shown below.
 
 For XAML examples, declare:
 
@@ -164,6 +167,41 @@ var edge = ToolbarLayout.GetVerticalEdge(this);
 
 The tracker observes each page's native traits, including changes while a tab is cached.
 
+## Edge-to-edge CollectionView scrolling
+
+On iPhone Duo, the title bar scrolls out of the way as the list moves up. With the page's top safe-area edge set to `Container`, the first item starts safely below the title, but a small gap can remain at the top while scrolling. Using `None` allows the list to reach the edge, but can leave the first item behind the title when the page opens.
+
+The solution separates the **viewport** from the **content insets**: the viewport extends behind the system bars, while UIKit's automatic inset adjustment keeps the content's initial and final positions safe. Items can scroll behind the title and reach the screen edge as it disappears, without hard-coded bar heights or scroll-driven margins.
+
+Enable the handler in `MauiProgram.cs`:
+
+```csharp
+using DuoExtensions.Maui;
+
+builder
+    .UseMauiApp<App>()
+    .UseDuoExtensions()
+    .UseEdgeToEdgeCollectionView();
+```
+
+`UseEdgeToEdgeCollectionView()` registers a handler for all iOS `CollectionView` controls in the app; it is not included in `UseDuoExtensions()`. On other targets, the extension method has no effect. If you already register a custom CollectionView handler, the implementations must be combined.
+
+Use the following page layout, keeping the CollectionView as the page's direct content:
+
+```xml
+<ContentPage
+             ...
+             SafeAreaEdges="Container, None"
+             BackgroundColor="White"
+             Shell.BackgroundColor="Transparent">
+    <CollectionView BackgroundColor="Transparent" ... >
+        ...
+    </CollectionView>
+</ContentPage>
+```
+
+`SafeAreaEdges="Container, None"` retains the horizontal container safe area and removes the vertical page safe area. The native scroll view's automatic insets provide the safe content position instead.
+
 ## Hinge monitoring
 
 Hinge monitoring works with or without Shell. Inject the singleton `IHingeService` into your page and obtain the observer for its window when the page appears:
@@ -233,13 +271,14 @@ The singleton service provides a convenient app-wide access point, while `ForWin
 
 ## Demo
 
-The [DuoExtensions-Demo](DuoExtensions-Demo/DuoExtensions-Demo.csproj) app references the library and contains five Shell tabs:
+The [DuoExtensions-Demo](DuoExtensions-Demo/DuoExtensions-Demo.csproj) app references the library and contains six Shell tabs:
 
 - **Axis:** change a Share action's axis preference.
 - **Compression:** compare preferences using eight distinct action icons.
 - **Vertical:** toggle the Shell-wide vertical bar preference.
 - **Edge:** display the live edge with a direction arrow.
 - **Hinge:** display status and angle using constructor injection.
+- **Edge-to-Edge:** scroll a CollectionView behind the title bar with automatic content insets.
 
 The demo targets the iOS 27.1 SDK but supports deployment to iOS 15.0 and later.
 
@@ -249,6 +288,7 @@ The demo targets the iOS 27.1 SDK but supports deployment to iOS 15.0 and later.
 - A custom iOS Shell renderer supplies the Shell-wide vertical preference.
 - A Shell page tracker applies compression to `UINavigationItem`, maps configured toolbar actions to existing `UIBarButtonItem` instances, and observes page traits.
 - The hinge service attaches a `UIHingeInteraction` to each observed native window and manages handler replacement and destruction.
+- The edge-to-edge CollectionView handler enables automatic UIKit content insets and extends the owning controller's top layout behind opaque bars, restoring that layout when the view unloads.
 
 The library uses native UIKit behavior. Toolbar integration currently depends on MAUI's compatibility Shell renderer infrastructure.
 

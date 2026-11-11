@@ -19,5 +19,7 @@
                       ContentTemplate="{DataTemplate local:VerticalEdgePage}" />
         <ShellContent Title="Hinge" Icon="hinge.png" Route="hinge"
                       ContentTemplate="{DataTemplate local:HingePage}" />
+        <ShellContent Title="Edge-to-Edge" Icon="edge_to_edge.png" Route="edge-to-edge"
+                      ContentTemplate="{DataTemplate local:EdgeToEdgeScrollingPage}" />
     </TabBar>
 </Shell>

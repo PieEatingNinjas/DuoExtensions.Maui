@@ -1,6 +1,3 @@
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DuoExtensions.Maui;
@@ -37,6 +34,21 @@ public static class MauiAppBuilderExtensions
 		builder.ConfigureMauiHandlers(handlers =>
 		{
 			handlers.AddHandler(typeof(Shell), typeof(ToolbarLayoutShellRenderer));
+		});
+#endif
+
+		return builder;
+	}
+
+	/// <summary>Enables edge-to-edge collection view on iPhone Duo.</summary>
+	public static MauiAppBuilder UseEdgeToEdgeCollectionView(this MauiAppBuilder builder)
+	{
+		ArgumentNullException.ThrowIfNull(builder);
+
+#if IOS
+		builder.ConfigureMauiHandlers(handlers =>
+		{
+			handlers.AddHandler(typeof(CollectionView), typeof(EdgeToEdgeCollectionViewHandler));
 		});
 #endif
 
