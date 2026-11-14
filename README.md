@@ -1,4 +1,4 @@
-<img src="assets/logo.png" alt="DuoExtensions.Maui logo" width="96" height="96" />
+![DuoExtensions.Maui logo](https://raw.githubusercontent.com/PieEatingNinjas/DuoExtensions.Maui/main/assets/logo.png)
 
 # DuoExtensions.Maui
 
