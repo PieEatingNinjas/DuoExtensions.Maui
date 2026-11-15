@@ -32,43 +32,74 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 27.2
-        run: sudo xcode-select -s /Applications/Xcode_27.2.app/Contents/Developer
+      - name: Select Xcode 27.1
+        run: sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
 
       - name: Set up .NET 10 SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "10.0.x"
+          dotnet-version: "10.0.402"
+
+      - name: Pin .NET 10 SDK
+        run: |
+          mkdir -p "$RUNNER_TEMP/dotnet10"
+          printf '{"sdk":{"version":"10.0.402","rollForward":"disable"}}\n' > "$RUNNER_TEMP/dotnet10/global.json"
 
       - name: Install .NET 10 MAUI iOS workload
-        run: dotnet workload install maui-ios
+        run: dotnet workload install maui-ios --version 10.0.402.1
+        working-directory: ${{ runner.temp }}/dotnet10
 
-      - name: Build .NET 10 library target
-        run: dotnet build DuoExtensions.Maui/DuoExtensions.Maui.csproj -c Release -f net10.0
+      - name: Pack .NET 10 library targets
+        run: >-
+          dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
+          -c Release
+          '-p:TargetFrameworks=net10.0;net10.0-ios27.1'
+          -p:Version=${{ steps.version.outputs.version }}
+          -o "$GITHUB_WORKSPACE/artifacts/net10"
+        working-directory: ${{ runner.temp }}/dotnet10
 
       - name: Set up .NET 11 SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "11.0.x"
 
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app/Contents/Developer
+
+      - name: Pin .NET 11 SDK
+        run: |
+          mkdir -p "$RUNNER_TEMP/dotnet11"
+          printf '{"sdk":{"version":"11.0.100","rollForward":"latestFeature"}}\n' > "$RUNNER_TEMP/dotnet11/global.json"
+
       - name: Install .NET 11 MAUI iOS workload
         run: dotnet workload install maui-ios
+        working-directory: ${{ runner.temp }}/dotnet11
 
       - name: Build demo
-        run: dotnet build DuoExtensions-Demo/DuoExtensions-Demo.csproj -c Release
+        run: dotnet build "$GITHUB_WORKSPACE/DuoExtensions-Demo/DuoExtensions-Demo.csproj" -c Release
+        working-directory: ${{ runner.temp }}/dotnet11
 
-      - name: Pack library
+      - name: Pack .NET 11 library targets
         run: >-
-          dotnet pack DuoExtensions.Maui/DuoExtensions.Maui.csproj
+          dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
           -c Release
+          '-p:TargetFrameworks=net11.0;net11.0-ios27.2'
           -p:Version=${{ steps.version.outputs.version }}
-          -o artifacts
+          -o "$GITHUB_WORKSPACE/artifacts/net11"
+        working-directory: ${{ runner.temp }}/dotnet11
+
+      - name: Merge target framework packages
+        run: >-
+          python3 "$GITHUB_WORKSPACE/eng/merge_nuget_packages.py"
+          "$GITHUB_WORKSPACE/artifacts/net10/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
+          "$GITHUB_WORKSPACE/artifacts/net11/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
+          "$GITHUB_WORKSPACE/artifacts/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: nuget-package
-          path: artifacts/*.nupkg
+          path: artifacts/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg
           if-no-files-found: error
 
   publish:
