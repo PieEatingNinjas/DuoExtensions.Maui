@@ -23,12 +23,12 @@ The toolbar settings are system preferences, not custom toolbar rendering. UIKit
 
 ## Requirements
 
-- .NET 10 and the .NET MAUI workload.
-- The .NET for iOS SDK exposing the iOS 27.1 APIs.
-- Xcode 27.1 and a compatible simulator or device for native testing.
-- An iOS app targeting `net10.0-ios27.1` to select the library's native implementation.
+- .NET 11 and the .NET MAUI workload.
+- The .NET for iOS SDK exposing the iOS 27.2 APIs.
+- Xcode 27.2 and a compatible simulator or device for native testing.
+- An iOS app targeting `net11.0-ios27.2` to select the library's native implementation.
 
-The library targets `net10.0` and `net10.0-ios27.1`. Its iOS deployment minimum is 15.0, with new native APIs guarded at runtime. Toolbar extensions have no effect before iOS 27.1, and hinge monitoring reports unsupported.
+The library targets `net10.0`, `net11.0` and `net11.0-ios27.2`. Its iOS deployment minimum is 15.0, with new native APIs guarded at runtime. Toolbar extensions have no effect before iOS 27.1, and hinge monitoring reports unsupported.
 
 The shared target keeps public types available in cross-platform apps, but **Android, Mac Catalyst and Windows have no native implementation**. Hinge API support indicates OS capability, not the presence of hinge hardware or an available reading.
 
