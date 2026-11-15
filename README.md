@@ -23,7 +23,7 @@ The toolbar settings are system preferences, not custom toolbar rendering. UIKit
 
 ## Requirements
 
-- .NET 11 and the .NET MAUI workload.
+- .NET 10 and .NET 11 SDKs, each with the .NET MAUI workload, to build all library targets.
 - The .NET for iOS SDK exposing the iOS 27.2 APIs.
 - Xcode 27.2 and a compatible simulator or device for native testing.
 - An iOS app targeting `net11.0-ios27.2` to select the library's native implementation.
