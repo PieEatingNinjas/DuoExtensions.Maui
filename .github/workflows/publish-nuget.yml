@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: NuGet package version without a leading v
+        required: true
+        type: string
+      publish:
+        description: Publish the package to nuget.org
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -18,51 +29,120 @@ jobs:
     runs-on: ${{ vars.NUGET_RUNNER || 'xcode-27' }}
     outputs:
       version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
     steps:
-      - name: Derive package version from tag
-        id: version
-        run: |
-          TAG="$GITHUB_REF_NAME"
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
-            echo "::error::Tag '$TAG' is not a valid version tag. Expected vMAJOR.MINOR.PATCH with an optional SemVer prerelease suffix, e.g. v0.1.0 or v0.1.0-preview.1." >&2
-            exit 1
-          fi
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Select Xcode 27.2
-        run: sudo xcode-select -s /Applications/Xcode_27.2.app/Contents/Developer
+      - name: Resolve package version and publish flag
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            TAG="$GITHUB_REF_NAME"
+            if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+              echo "::error::Tag '$TAG' is not a valid version tag. Expected vMAJOR.MINOR.PATCH with an optional SemVer prerelease suffix, e.g. v0.1.0 or v0.1.0-preview.1." >&2
+              exit 1
+            fi
+            VERSION="${TAG#v}"
+            PUBLISH=true
 
-      - name: Set up .NET SDK
+            git fetch origin main:refs/remotes/origin/main
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+              echo "::error::Release tags must point to a commit on main." >&2
+              exit 1
+            fi
+          else
+            VERSION="$INPUT_VERSION"
+            PUBLISH="$INPUT_PUBLISH"
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "::error::Version '$VERSION' is invalid. Expected MAJOR.MINOR.PATCH with an optional SemVer prerelease suffix, e.g. 0.1.0 or 0.1.0-preview.1." >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode 27.1
+        run: sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.402"
+
+      - name: Pin .NET 10 SDK
+        run: |
+          mkdir -p "$RUNNER_TEMP/dotnet10"
+          printf '{"sdk":{"version":"10.0.402","rollForward":"disable"}}\n' > "$RUNNER_TEMP/dotnet10/global.json"
+
+      - name: Install .NET 10 MAUI iOS workload
+        run: dotnet workload install maui-ios --version 10.0.402.1
+        working-directory: ${{ runner.temp }}/dotnet10
+
+      - name: Pack .NET 10 library targets
+        run: >-
+          dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
+          -c Release
+          '-p:TargetFrameworks=net10.0;net10.0-ios27.1'
+          -p:Version=${{ steps.version.outputs.version }}
+          -o "$GITHUB_WORKSPACE/artifacts/net10"
+        working-directory: ${{ runner.temp }}/dotnet10
+
+      - name: Set up .NET 11 SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "11.0.x"
 
-      - name: Install .NET MAUI iOS workload
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app/Contents/Developer
+
+      - name: Pin .NET 11 SDK
+        run: |
+          mkdir -p "$RUNNER_TEMP/dotnet11"
+          printf '{"sdk":{"version":"11.0.100","rollForward":"latestFeature"}}\n' > "$RUNNER_TEMP/dotnet11/global.json"
+
+      - name: Install .NET 11 MAUI iOS workload
         run: dotnet workload install maui-ios
+        working-directory: ${{ runner.temp }}/dotnet11
 
       - name: Build demo
-        run: dotnet build DuoExtensions-Demo/DuoExtensions-Demo.csproj -c Release
+        run: dotnet build "$GITHUB_WORKSPACE/DuoExtensions-Demo/DuoExtensions-Demo.csproj" -c Release
+        working-directory: ${{ runner.temp }}/dotnet11
 
-      - name: Pack library
+      - name: Pack .NET 11 library targets
         run: >-
-          dotnet pack DuoExtensions.Maui/DuoExtensions.Maui.csproj
+          dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
           -c Release
+          '-p:TargetFrameworks=net11.0;net11.0-ios27.2'
           -p:Version=${{ steps.version.outputs.version }}
-          -o artifacts
+          -o "$GITHUB_WORKSPACE/artifacts/net11"
+        working-directory: ${{ runner.temp }}/dotnet11
+
+      - name: Merge target framework packages
+        run: >-
+          python3 "$GITHUB_WORKSPACE/eng/merge_nuget_packages.py"
+          "$GITHUB_WORKSPACE/artifacts/net10/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
+          "$GITHUB_WORKSPACE/artifacts/net11/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
+          "$GITHUB_WORKSPACE/artifacts/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg"
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: nuget-package
-          path: artifacts/*.nupkg
+          path: artifacts/DuoExtensions.Maui.${{ steps.version.outputs.version }}.nupkg
           if-no-files-found: error
 
   publish:
     name: Publish to nuget.org
     needs: pack
+    if: needs.pack.outputs.publish == 'true'
     runs-on: ubuntu-latest
     environment: nuget
     permissions:
