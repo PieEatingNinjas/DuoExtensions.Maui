@@ -90,7 +90,7 @@ jobs:
         run: >-
           dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
           -c Release
-          '-p:TargetFrameworks=net10.0;net10.0-ios27.1'
+          '-p:TargetFrameworks=net10.0%3Bnet10.0-ios27.1'
           -p:Version=${{ steps.version.outputs.version }}
           -o "$GITHUB_WORKSPACE/artifacts/net10"
         working-directory: ${{ runner.temp }}/dotnet10
@@ -120,7 +120,7 @@ jobs:
         run: >-
           dotnet pack "$GITHUB_WORKSPACE/DuoExtensions.Maui/DuoExtensions.Maui.csproj"
           -c Release
-          '-p:TargetFrameworks=net11.0;net11.0-ios27.2'
+          '-p:TargetFrameworks=net11.0%3Bnet11.0-ios27.2'
           -p:Version=${{ steps.version.outputs.version }}
           -o "$GITHUB_WORKSPACE/artifacts/net11"
         working-directory: ${{ runner.temp }}/dotnet11
