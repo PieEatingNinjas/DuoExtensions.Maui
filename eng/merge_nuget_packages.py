@@ -115,6 +115,8 @@ def merge_packages(net10_path, net11_path, output_path):
         for framework in sorted(dependency_groups):
             dependencies.append(dependency_groups[framework])
 
+        if net11_root.tag.startswith("{"):
+            ElementTree.register_namespace("", net11_root.tag[1:].split("}", 1)[0])
         entries[net10_nuspec_path] = ElementTree.tostring(
             net11_root, encoding="utf-8", xml_declaration=True
         )
